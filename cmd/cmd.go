@@ -3,17 +3,23 @@ package cmd
 import (
 	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/cligpt/shdrive/config"
 	"github.com/cligpt/shdrive/drive"
+	"github.com/cligpt/shdrive/etcd"
+	"github.com/cligpt/shdrive/gpt"
 )
 
 const (
-	driveName = "shdrive"
+	driveName  = "shdrive"
+	routineNum = -1
 )
 
 var (
@@ -34,7 +40,17 @@ func Run(ctx context.Context) error {
 		return errors.Wrap(err, "failed to init config")
 	}
 
-	d, err := initDrive(ctx, logger, c)
+	e, err := initEtcd(ctx, logger, c)
+	if err != nil {
+		return errors.Wrap(err, "failed to init etcd")
+	}
+
+	g, err := initGpt(ctx, logger, c)
+	if err != nil {
+		return errors.Wrap(err, "failed to init gpt")
+	}
+
+	d, err := initDrive(ctx, logger, c, e, g)
 	if err != nil {
 		return errors.Wrap(err, "failed to init drive")
 	}
@@ -58,13 +74,40 @@ func initConfig(_ context.Context, _ hclog.Logger) (*config.Config, error) {
 	return c, nil
 }
 
-func initDrive(ctx context.Context, logger hclog.Logger, _ *config.Config) (drive.Drive, error) {
+func initEtcd(ctx context.Context, logger hclog.Logger, cfg *config.Config) (etcd.Etcd, error) {
+	c := etcd.DefaultConfig()
+	if c == nil {
+		return nil, errors.New("failed to config")
+	}
+
+	c.Logger = logger
+	c.Config = *cfg
+
+	return etcd.New(ctx, c), nil
+}
+
+func initGpt(ctx context.Context, logger hclog.Logger, cfg *config.Config) (gpt.Gpt, error) {
+	c := gpt.DefaultConfig()
+	if c == nil {
+		return nil, errors.New("failed to config")
+	}
+
+	c.Logger = logger
+	c.Config = *cfg
+
+	return gpt.New(ctx, c), nil
+}
+
+func initDrive(ctx context.Context, logger hclog.Logger, cfg *config.Config, _etcd etcd.Etcd, _gpt gpt.Gpt) (drive.Drive, error) {
 	c := drive.DefaultConfig()
 	if c == nil {
 		return nil, errors.New("failed to config")
 	}
 
 	c.Logger = logger
+	c.Config = *cfg
+	c.Etcd = _etcd
+	c.Gpt = _gpt
 
 	return drive.New(ctx, c), nil
 }
@@ -74,12 +117,31 @@ func runDrive(ctx context.Context, _ hclog.Logger, _drive drive.Drive) error {
 		return errors.New("failed to init")
 	}
 
-	defer func(_drive drive.Drive, ctx context.Context) {
-		_ = _drive.Deinit(ctx)
-	}(_drive, ctx)
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(routineNum)
 
-	if err := _drive.Run(ctx); err != nil {
-		return errors.Wrap(err, "failed to run")
+	g.Go(func() error {
+		if err := _drive.Run(ctx); err != nil {
+			return errors.Wrap(err, "failed to run")
+		}
+		return nil
+	})
+
+	s := make(chan os.Signal, 1)
+
+	// kill (no param) default send syscanll.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall.SIGKILL but can"t be caught, so don't need add it
+	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
+
+	g.Go(func() error {
+		<-s
+		_ = _drive.Deinit(ctx)
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return errors.Wrap(err, "failed to wait")
 	}
 
 	return nil
