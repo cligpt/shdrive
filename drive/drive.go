@@ -30,7 +30,8 @@ type Config struct {
 type drive struct {
 	cfg *Config
 	srv *grpc.Server
-	rpc.UnimplementedDriveProtoServer
+	rpc.UnimplementedAiProtoServer
+	rpc.UnimplementedUpProtoServer
 }
 
 func New(_ context.Context, cfg *Config) Drive {
@@ -55,7 +56,9 @@ func (d *drive) Init(ctx context.Context) error {
 	options := []grpc.ServerOption{grpc.MaxRecvMsgSize(math.MaxInt32), grpc.MaxSendMsgSize(math.MaxInt32)}
 
 	d.srv = grpc.NewServer(options...)
-	rpc.RegisterDriveProtoServer(d.srv, d)
+
+	rpc.RegisterAiProtoServer(d.srv, d)
+	rpc.RegisterUpProtoServer(d.srv, d)
 
 	return nil
 }
