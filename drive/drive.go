@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/cligpt/shdrive/config"
-	pb "github.com/cligpt/shdrive/drive/proto"
+	rpc "github.com/cligpt/shdrive/drive/rpc"
 	"github.com/cligpt/shdrive/etcd"
 	"github.com/cligpt/shdrive/gpt"
 )
@@ -30,7 +30,7 @@ type Config struct {
 type drive struct {
 	cfg *Config
 	srv *grpc.Server
-	pb.UnimplementedDriveProtoServer
+	rpc.UnimplementedDriveProtoServer
 }
 
 func New(_ context.Context, cfg *Config) Drive {
@@ -55,7 +55,7 @@ func (d *drive) Init(ctx context.Context) error {
 	options := []grpc.ServerOption{grpc.MaxRecvMsgSize(math.MaxInt32), grpc.MaxSendMsgSize(math.MaxInt32)}
 
 	d.srv = grpc.NewServer(options...)
-	pb.RegisterDriveProtoServer(d.srv, d)
+	rpc.RegisterDriveProtoServer(d.srv, d)
 
 	return nil
 }
