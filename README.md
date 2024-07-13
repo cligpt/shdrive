@@ -32,7 +32,15 @@ make build
 ## Usage
 
 ```
-TBD
+usage: shdrive [<flags>]
+
+shai server
+
+
+Flags:
+      --[no-]help         Show context-sensitive help (also try --help-long and --help-man).
+      --[no-]version      Show application version.
+  -l, --log-level="WARN"  Log level (DEBUG|INFO|WARN|ERROR)
 ```
 
 
