@@ -40,8 +40,8 @@ Usage:
 Flags:
   -f, --config-file string   config file (default "$HOME/.shai/shdrive.yml")
   -h, --help                 help for shdrive
-  -t, --listen-http string   listen http (default ":69091")
-  -r, --listen-rpc string    listen rpc (default ":69090")
+  -t, --listen-http string   listen http (default ":69090")
+  -r, --listen-rpc string    listen rpc (default ":65090")
   -l, --log-level string     log level (DEBUG|INFO|WARN|ERROR) (default "WRAN")
   -v, --version              version for shdrive
 ```

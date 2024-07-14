@@ -58,10 +58,8 @@ func init() {
 	cobra.OnInitialize(helper)
 
 	rootCmd.Flags().StringVarP(&configFile, "config-file", "f", "$HOME/.shai/shdrive.yml", "config file")
-	rootCmd.Flags().StringVarP(&listenHttp, "listen-http", "t", ":69091", "listen http")
-	_ = rootCmd.MarkFlagRequired("listen-http")
-	rootCmd.Flags().StringVarP(&listenRpc, "listen-rpc", "r", ":69090", "listen rpc")
-	_ = rootCmd.MarkFlagRequired("listen-rpc")
+	rootCmd.Flags().StringVarP(&listenHttp, "listen-http", "t", ":69090", "listen http")
+	rootCmd.Flags().StringVarP(&listenRpc, "listen-rpc", "r", ":65090", "listen rpc")
 	rootCmd.Flags().StringVarP(&logLevel, "log-level", "l", "WRAN", "log level (DEBUG|INFO|WARN|ERROR)")
 }
 
