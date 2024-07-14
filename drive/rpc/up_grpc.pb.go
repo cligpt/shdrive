@@ -19,16 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	UpProto_SendCheckVersion_FullMethodName   = "/drive.UpProto/SendCheckVersion"
-	UpProto_SendUpgradeVersion_FullMethodName = "/drive.UpProto/SendUpgradeVersion"
+	UpProto_SendFetchVersion_FullMethodName = "/drive.UpProto/SendFetchVersion"
+	UpProto_SendFetchRelease_FullMethodName = "/drive.UpProto/SendFetchRelease"
 )
 
 // UpProtoClient is the client API for UpProto service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UpProtoClient interface {
-	SendCheckVersion(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendCheckVersionClient, error)
-	SendUpgradeVersion(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendUpgradeVersionClient, error)
+	SendFetchVersion(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendFetchVersionClient, error)
+	SendFetchRelease(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendFetchReleaseClient, error)
 }
 
 type upProtoClient struct {
@@ -39,64 +39,64 @@ func NewUpProtoClient(cc grpc.ClientConnInterface) UpProtoClient {
 	return &upProtoClient{cc}
 }
 
-func (c *upProtoClient) SendCheckVersion(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendCheckVersionClient, error) {
+func (c *upProtoClient) SendFetchVersion(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendFetchVersionClient, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &UpProto_ServiceDesc.Streams[0], UpProto_SendCheckVersion_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &UpProto_ServiceDesc.Streams[0], UpProto_SendFetchVersion_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &upProtoSendCheckVersionClient{ClientStream: stream}
+	x := &upProtoSendFetchVersionClient{ClientStream: stream}
 	return x, nil
 }
 
-type UpProto_SendCheckVersionClient interface {
-	Send(*CheckVersionRequest) error
-	Recv() (*CheckVersionReply, error)
+type UpProto_SendFetchVersionClient interface {
+	Send(*FetchVersionRequest) error
+	Recv() (*FetchVersionReply, error)
 	grpc.ClientStream
 }
 
-type upProtoSendCheckVersionClient struct {
+type upProtoSendFetchVersionClient struct {
 	grpc.ClientStream
 }
 
-func (x *upProtoSendCheckVersionClient) Send(m *CheckVersionRequest) error {
+func (x *upProtoSendFetchVersionClient) Send(m *FetchVersionRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *upProtoSendCheckVersionClient) Recv() (*CheckVersionReply, error) {
-	m := new(CheckVersionReply)
+func (x *upProtoSendFetchVersionClient) Recv() (*FetchVersionReply, error) {
+	m := new(FetchVersionReply)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *upProtoClient) SendUpgradeVersion(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendUpgradeVersionClient, error) {
+func (c *upProtoClient) SendFetchRelease(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendFetchReleaseClient, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &UpProto_ServiceDesc.Streams[1], UpProto_SendUpgradeVersion_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &UpProto_ServiceDesc.Streams[1], UpProto_SendFetchRelease_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &upProtoSendUpgradeVersionClient{ClientStream: stream}
+	x := &upProtoSendFetchReleaseClient{ClientStream: stream}
 	return x, nil
 }
 
-type UpProto_SendUpgradeVersionClient interface {
-	Send(*UpgradeVersionRequest) error
-	Recv() (*UpgradeVersionReply, error)
+type UpProto_SendFetchReleaseClient interface {
+	Send(*FetchReleaseRequest) error
+	Recv() (*FetchReleaseReply, error)
 	grpc.ClientStream
 }
 
-type upProtoSendUpgradeVersionClient struct {
+type upProtoSendFetchReleaseClient struct {
 	grpc.ClientStream
 }
 
-func (x *upProtoSendUpgradeVersionClient) Send(m *UpgradeVersionRequest) error {
+func (x *upProtoSendFetchReleaseClient) Send(m *FetchReleaseRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *upProtoSendUpgradeVersionClient) Recv() (*UpgradeVersionReply, error) {
-	m := new(UpgradeVersionReply)
+func (x *upProtoSendFetchReleaseClient) Recv() (*FetchReleaseReply, error) {
+	m := new(FetchReleaseReply)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -107,8 +107,8 @@ func (x *upProtoSendUpgradeVersionClient) Recv() (*UpgradeVersionReply, error) {
 // All implementations must embed UnimplementedUpProtoServer
 // for forward compatibility
 type UpProtoServer interface {
-	SendCheckVersion(UpProto_SendCheckVersionServer) error
-	SendUpgradeVersion(UpProto_SendUpgradeVersionServer) error
+	SendFetchVersion(UpProto_SendFetchVersionServer) error
+	SendFetchRelease(UpProto_SendFetchReleaseServer) error
 	mustEmbedUnimplementedUpProtoServer()
 }
 
@@ -116,11 +116,11 @@ type UpProtoServer interface {
 type UnimplementedUpProtoServer struct {
 }
 
-func (UnimplementedUpProtoServer) SendCheckVersion(UpProto_SendCheckVersionServer) error {
-	return status.Errorf(codes.Unimplemented, "method SendCheckVersion not implemented")
+func (UnimplementedUpProtoServer) SendFetchVersion(UpProto_SendFetchVersionServer) error {
+	return status.Errorf(codes.Unimplemented, "method SendFetchVersion not implemented")
 }
-func (UnimplementedUpProtoServer) SendUpgradeVersion(UpProto_SendUpgradeVersionServer) error {
-	return status.Errorf(codes.Unimplemented, "method SendUpgradeVersion not implemented")
+func (UnimplementedUpProtoServer) SendFetchRelease(UpProto_SendFetchReleaseServer) error {
+	return status.Errorf(codes.Unimplemented, "method SendFetchRelease not implemented")
 }
 func (UnimplementedUpProtoServer) mustEmbedUnimplementedUpProtoServer() {}
 
@@ -135,52 +135,52 @@ func RegisterUpProtoServer(s grpc.ServiceRegistrar, srv UpProtoServer) {
 	s.RegisterService(&UpProto_ServiceDesc, srv)
 }
 
-func _UpProto_SendCheckVersion_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(UpProtoServer).SendCheckVersion(&upProtoSendCheckVersionServer{ServerStream: stream})
+func _UpProto_SendFetchVersion_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UpProtoServer).SendFetchVersion(&upProtoSendFetchVersionServer{ServerStream: stream})
 }
 
-type UpProto_SendCheckVersionServer interface {
-	Send(*CheckVersionReply) error
-	Recv() (*CheckVersionRequest, error)
+type UpProto_SendFetchVersionServer interface {
+	Send(*FetchVersionReply) error
+	Recv() (*FetchVersionRequest, error)
 	grpc.ServerStream
 }
 
-type upProtoSendCheckVersionServer struct {
+type upProtoSendFetchVersionServer struct {
 	grpc.ServerStream
 }
 
-func (x *upProtoSendCheckVersionServer) Send(m *CheckVersionReply) error {
+func (x *upProtoSendFetchVersionServer) Send(m *FetchVersionReply) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *upProtoSendCheckVersionServer) Recv() (*CheckVersionRequest, error) {
-	m := new(CheckVersionRequest)
+func (x *upProtoSendFetchVersionServer) Recv() (*FetchVersionRequest, error) {
+	m := new(FetchVersionRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _UpProto_SendUpgradeVersion_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(UpProtoServer).SendUpgradeVersion(&upProtoSendUpgradeVersionServer{ServerStream: stream})
+func _UpProto_SendFetchRelease_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UpProtoServer).SendFetchRelease(&upProtoSendFetchReleaseServer{ServerStream: stream})
 }
 
-type UpProto_SendUpgradeVersionServer interface {
-	Send(*UpgradeVersionReply) error
-	Recv() (*UpgradeVersionRequest, error)
+type UpProto_SendFetchReleaseServer interface {
+	Send(*FetchReleaseReply) error
+	Recv() (*FetchReleaseRequest, error)
 	grpc.ServerStream
 }
 
-type upProtoSendUpgradeVersionServer struct {
+type upProtoSendFetchReleaseServer struct {
 	grpc.ServerStream
 }
 
-func (x *upProtoSendUpgradeVersionServer) Send(m *UpgradeVersionReply) error {
+func (x *upProtoSendFetchReleaseServer) Send(m *FetchReleaseReply) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *upProtoSendUpgradeVersionServer) Recv() (*UpgradeVersionRequest, error) {
-	m := new(UpgradeVersionRequest)
+func (x *upProtoSendFetchReleaseServer) Recv() (*FetchReleaseRequest, error) {
+	m := new(FetchReleaseRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -196,14 +196,14 @@ var UpProto_ServiceDesc = grpc.ServiceDesc{
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "SendCheckVersion",
-			Handler:       _UpProto_SendCheckVersion_Handler,
+			StreamName:    "SendFetchVersion",
+			Handler:       _UpProto_SendFetchVersion_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
 		{
-			StreamName:    "SendUpgradeVersion",
-			Handler:       _UpProto_SendUpgradeVersion_Handler,
+			StreamName:    "SendFetchRelease",
+			Handler:       _UpProto_SendFetchRelease_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
