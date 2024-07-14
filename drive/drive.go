@@ -2,16 +2,11 @@ package drive
 
 import (
 	"context"
-	"math"
-
-	"github.com/hashicorp/go-hclog"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-
 	"github.com/cligpt/shdrive/config"
-	rpc "github.com/cligpt/shdrive/drive/rpc"
 	"github.com/cligpt/shdrive/etcd"
 	"github.com/cligpt/shdrive/gpt"
+	"github.com/hashicorp/go-hclog"
+	"github.com/pkg/errors"
 )
 
 type Drive interface {
@@ -31,9 +26,6 @@ type Config struct {
 
 type drive struct {
 	cfg *Config
-	srv *grpc.Server
-	rpc.UnimplementedAiProtoServer
-	rpc.UnimplementedUpProtoServer
 }
 
 func New(_ context.Context, cfg *Config) Drive {
@@ -55,19 +47,10 @@ func (d *drive) Init(ctx context.Context) error {
 		return errors.Wrap(err, "failed to init gpt")
 	}
 
-	options := []grpc.ServerOption{grpc.MaxRecvMsgSize(math.MaxInt32), grpc.MaxSendMsgSize(math.MaxInt32)}
-
-	d.srv = grpc.NewServer(options...)
-
-	rpc.RegisterAiProtoServer(d.srv, d)
-	rpc.RegisterUpProtoServer(d.srv, d)
-
 	return nil
 }
 
 func (d *drive) Deinit(ctx context.Context) error {
-	d.srv.Stop()
-
 	_ = d.cfg.Gpt.Deinit(ctx)
 	_ = d.cfg.Etcd.Deinit(ctx)
 

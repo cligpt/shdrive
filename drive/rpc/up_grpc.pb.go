@@ -19,16 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	UpProto_SendFetchVersion_FullMethodName = "/drive.UpProto/SendFetchVersion"
-	UpProto_SendFetchRelease_FullMethodName = "/drive.UpProto/SendFetchRelease"
+	UpProto_SendQuery_FullMethodName = "/drive.UpProto/SendQuery"
 )
 
 // UpProtoClient is the client API for UpProto service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UpProtoClient interface {
-	SendFetchVersion(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendFetchVersionClient, error)
-	SendFetchRelease(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendFetchReleaseClient, error)
+	SendQuery(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryReply, error)
 }
 
 type upProtoClient struct {
@@ -39,76 +37,21 @@ func NewUpProtoClient(cc grpc.ClientConnInterface) UpProtoClient {
 	return &upProtoClient{cc}
 }
 
-func (c *upProtoClient) SendFetchVersion(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendFetchVersionClient, error) {
+func (c *upProtoClient) SendQuery(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &UpProto_ServiceDesc.Streams[0], UpProto_SendFetchVersion_FullMethodName, cOpts...)
+	out := new(QueryReply)
+	err := c.cc.Invoke(ctx, UpProto_SendQuery_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &upProtoSendFetchVersionClient{ClientStream: stream}
-	return x, nil
-}
-
-type UpProto_SendFetchVersionClient interface {
-	Send(*FetchVersionRequest) error
-	Recv() (*FetchVersionReply, error)
-	grpc.ClientStream
-}
-
-type upProtoSendFetchVersionClient struct {
-	grpc.ClientStream
-}
-
-func (x *upProtoSendFetchVersionClient) Send(m *FetchVersionRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *upProtoSendFetchVersionClient) Recv() (*FetchVersionReply, error) {
-	m := new(FetchVersionReply)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *upProtoClient) SendFetchRelease(ctx context.Context, opts ...grpc.CallOption) (UpProto_SendFetchReleaseClient, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &UpProto_ServiceDesc.Streams[1], UpProto_SendFetchRelease_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &upProtoSendFetchReleaseClient{ClientStream: stream}
-	return x, nil
-}
-
-type UpProto_SendFetchReleaseClient interface {
-	Send(*FetchReleaseRequest) error
-	Recv() (*FetchReleaseReply, error)
-	grpc.ClientStream
-}
-
-type upProtoSendFetchReleaseClient struct {
-	grpc.ClientStream
-}
-
-func (x *upProtoSendFetchReleaseClient) Send(m *FetchReleaseRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *upProtoSendFetchReleaseClient) Recv() (*FetchReleaseReply, error) {
-	m := new(FetchReleaseReply)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // UpProtoServer is the server API for UpProto service.
 // All implementations must embed UnimplementedUpProtoServer
 // for forward compatibility
 type UpProtoServer interface {
-	SendFetchVersion(UpProto_SendFetchVersionServer) error
-	SendFetchRelease(UpProto_SendFetchReleaseServer) error
+	SendQuery(context.Context, *QueryRequest) (*QueryReply, error)
 	mustEmbedUnimplementedUpProtoServer()
 }
 
@@ -116,11 +59,8 @@ type UpProtoServer interface {
 type UnimplementedUpProtoServer struct {
 }
 
-func (UnimplementedUpProtoServer) SendFetchVersion(UpProto_SendFetchVersionServer) error {
-	return status.Errorf(codes.Unimplemented, "method SendFetchVersion not implemented")
-}
-func (UnimplementedUpProtoServer) SendFetchRelease(UpProto_SendFetchReleaseServer) error {
-	return status.Errorf(codes.Unimplemented, "method SendFetchRelease not implemented")
+func (UnimplementedUpProtoServer) SendQuery(context.Context, *QueryRequest) (*QueryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendQuery not implemented")
 }
 func (UnimplementedUpProtoServer) mustEmbedUnimplementedUpProtoServer() {}
 
@@ -135,56 +75,22 @@ func RegisterUpProtoServer(s grpc.ServiceRegistrar, srv UpProtoServer) {
 	s.RegisterService(&UpProto_ServiceDesc, srv)
 }
 
-func _UpProto_SendFetchVersion_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(UpProtoServer).SendFetchVersion(&upProtoSendFetchVersionServer{ServerStream: stream})
-}
-
-type UpProto_SendFetchVersionServer interface {
-	Send(*FetchVersionReply) error
-	Recv() (*FetchVersionRequest, error)
-	grpc.ServerStream
-}
-
-type upProtoSendFetchVersionServer struct {
-	grpc.ServerStream
-}
-
-func (x *upProtoSendFetchVersionServer) Send(m *FetchVersionReply) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *upProtoSendFetchVersionServer) Recv() (*FetchVersionRequest, error) {
-	m := new(FetchVersionRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _UpProto_SendQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRequest)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
-}
-
-func _UpProto_SendFetchRelease_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(UpProtoServer).SendFetchRelease(&upProtoSendFetchReleaseServer{ServerStream: stream})
-}
-
-type UpProto_SendFetchReleaseServer interface {
-	Send(*FetchReleaseReply) error
-	Recv() (*FetchReleaseRequest, error)
-	grpc.ServerStream
-}
-
-type upProtoSendFetchReleaseServer struct {
-	grpc.ServerStream
-}
-
-func (x *upProtoSendFetchReleaseServer) Send(m *FetchReleaseReply) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *upProtoSendFetchReleaseServer) Recv() (*FetchReleaseRequest, error) {
-	m := new(FetchReleaseRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
+	if interceptor == nil {
+		return srv.(UpProtoServer).SendQuery(ctx, in)
 	}
-	return m, nil
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UpProto_SendQuery_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UpProtoServer).SendQuery(ctx, req.(*QueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // UpProto_ServiceDesc is the grpc.ServiceDesc for UpProto service.
@@ -193,20 +99,12 @@ func (x *upProtoSendFetchReleaseServer) Recv() (*FetchReleaseRequest, error) {
 var UpProto_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "drive.UpProto",
 	HandlerType: (*UpProtoServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
+	Methods: []grpc.MethodDesc{
 		{
-			StreamName:    "SendFetchVersion",
-			Handler:       _UpProto_SendFetchVersion_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
-		},
-		{
-			StreamName:    "SendFetchRelease",
-			Handler:       _UpProto_SendFetchRelease_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
+			MethodName: "SendQuery",
+			Handler:    _UpProto_SendQuery_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "drive/rpc/up.proto",
 }

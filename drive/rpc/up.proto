@@ -5,29 +5,18 @@ option go_package = "github.com/cligpt/shdrive/drive";
 package drive;
 
 service UpProto {
-  rpc SendFetchVersion(stream FetchVersionRequest) returns (stream FetchVersionReply) {}
-  rpc SendFetchRelease(stream FetchReleaseRequest) returns (stream FetchReleaseReply) {}
+  rpc SendQuery (QueryRequest) returns (QueryReply) {}
 }
 
-message FetchVersionRequest {
+message QueryRequest {
   string name = 1;
   string arch = 2;
   string os = 3;
 }
 
-message FetchVersionReply {
+message QueryReply {
   string version = 1;
-}
-
-message FetchReleaseRequest {
-  string name = 1;
-  string arch = 2;
-  string os = 3;
-  string version = 4;
-}
-
-message FetchReleaseReply {
-  string url = 1;
-  string user = 2;
-  string pass = 3;
+  string url = 2;
+  string user = 3;
+  string pass = 4;
 }
