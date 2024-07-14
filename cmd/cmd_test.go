@@ -53,8 +53,8 @@ func TestInitDrive(t *testing.T) {
 	_logger, _ := initLogger(context.Background(), "WARN")
 	_etcd, _ := initEtcd(context.Background(), _logger, cfg)
 	_gpt, _ := initGpt(context.Background(), _logger, cfg)
-	_http := ":69091"
-	_rpc := ":69090"
+	_http := ":68080"
+	_rpc := ":65050"
 
 	_, err := initDrive(context.Background(), _logger, cfg, _etcd, _gpt, _http, _rpc)
 	assert.Equal(t, nil, err)

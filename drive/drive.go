@@ -2,15 +2,15 @@ package drive
 
 import (
 	"context"
-	rpc "github.com/cligpt/shdrive/drive/rpc"
-	"google.golang.org/grpc"
 	"math"
 	"net"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 
 	"github.com/cligpt/shdrive/config"
+	rpc "github.com/cligpt/shdrive/drive/rpc"
 	"github.com/cligpt/shdrive/etcd"
 	"github.com/cligpt/shdrive/gpt"
 )
@@ -31,11 +31,9 @@ type Config struct {
 }
 
 type drive struct {
-	cfg      *Config
-	aiServer *grpc.Server
-	rpc.UnimplementedAiProtoServer
-	upServer *grpc.Server
-	rpc.UnimplementedUpProtoServer
+	cfg *Config
+	srv *grpc.Server
+	rpc.UnimplementedRpcProtoServer
 }
 
 func New(_ context.Context, cfg *Config) Drive {
@@ -59,18 +57,14 @@ func (d *drive) Init(ctx context.Context) error {
 
 	options := []grpc.ServerOption{grpc.MaxRecvMsgSize(math.MaxInt32), grpc.MaxSendMsgSize(math.MaxInt32)}
 
-	d.aiServer = grpc.NewServer(options...)
-	rpc.RegisterAiProtoServer(d.aiServer, d)
-
-	d.upServer = grpc.NewServer(options...)
-	rpc.RegisterUpProtoServer(d.upServer, d)
+	d.srv = grpc.NewServer(options...)
+	rpc.RegisterRpcProtoServer(d.srv, d)
 
 	return nil
 }
 
 func (d *drive) Deinit(ctx context.Context) error {
-	d.upServer.Stop()
-	d.aiServer.Stop()
+	d.srv.Stop()
 
 	_ = d.cfg.Gpt.Deinit(ctx)
 	_ = d.cfg.Etcd.Deinit(ctx)
@@ -80,13 +74,8 @@ func (d *drive) Deinit(ctx context.Context) error {
 
 func (d *drive) Run(_ context.Context) error {
 	lis, _ := net.Listen("tcp", d.cfg.Rpc)
-
-	if err := d.aiServer.Serve(lis); err != nil {
-		return errors.Wrap(err, "failed to run ai server")
-	}
-
-	if err := d.upServer.Serve(lis); err != nil {
-		return errors.Wrap(err, "failed to run up server")
+	if err := d.srv.Serve(lis); err != nil {
+		return errors.Wrap(err, "failed to run rpc")
 	}
 
 	// TBD: FIXME

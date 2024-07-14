@@ -40,10 +40,28 @@ Usage:
 Flags:
   -f, --config-file string   config file (default "$HOME/.shai/shdrive.yml")
   -h, --help                 help for shdrive
-  -t, --listen-http string   listen http (default ":69090")
-  -r, --listen-rpc string    listen rpc (default ":65090")
+  -t, --listen-http string   listen http (default ":68080")
+  -r, --listen-rpc string    listen rpc (default ":65050")
   -l, --log-level string     log level (DEBUG|INFO|WARN|ERROR) (default "WRAN")
   -v, --version              version for shdrive
+```
+
+
+
+## Settings
+
+*shdrive* parameters can be set in the directory [config](https://github.com/cligpt/shdrive/blob/main/config).
+
+An example of configuration in [config.yml](https://github.com/cligpt/shdrive/blob/main/config/config.yml):
+
+```yaml
+apiVersion: v1
+kind: shdrive
+metadata:
+  name: shdrive
+spec:
+  ollama:
+    url: 127.0.0.1:69090
 ```
 
 
