@@ -25,6 +25,8 @@ type Config struct {
 	Config config.Config
 	Etcd   etcd.Etcd
 	Gpt    gpt.Gpt
+	Http   string
+	Rpc    string
 }
 
 type drive struct {

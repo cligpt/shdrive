@@ -32,15 +32,18 @@ make build
 ## Usage
 
 ```
-usage: shdrive [<flags>]
-
 shai server
 
+Usage:
+  shdrive [flags]
 
 Flags:
-      --[no-]help         Show context-sensitive help (also try --help-long and --help-man).
-      --[no-]version      Show application version.
-  -l, --log-level="WARN"  Log level (DEBUG|INFO|WARN|ERROR)
+  -f, --config-file string   config file (default "$HOME/.shai/shdrive.yml")
+  -h, --help                 help for shdrive
+  -t, --listen-http string   listen http (default ":69091")
+  -r, --listen-rpc string    listen rpc (default ":69090")
+  -l, --log-level string     log level (DEBUG|INFO|WARN|ERROR) (default "WRAN")
+  -v, --version              version for shdrive
 ```
 
 

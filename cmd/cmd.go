@@ -6,9 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/alecthomas/kingpin/v2"
 	"github.com/hashicorp/go-hclog"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/cligpt/shdrive/config"
@@ -23,14 +25,52 @@ const (
 )
 
 var (
-	app      = kingpin.New(driveName, "shai server").Version(config.Version + "-build-" + config.Build)
-	logLevel = app.Flag("log-level", "Log level (DEBUG|INFO|WARN|ERROR)").Short('l').Default("WARN").String()
+	configFile string
+	listenHttp string
+	listenRpc  string
+	logLevel   string
 )
 
-func Run(ctx context.Context) error {
-	kingpin.MustParse(app.Parse(os.Args[1:]))
+var rootCmd = &cobra.Command{
+	Use:     driveName,
+	Version: config.Version + "-build-" + config.Build,
+	Short:   "shai server",
+	Long:    "shai server",
+	Run: func(cmd *cobra.Command, args []string) {
+		cobra.CheckErr(loadConfig(context.Background()))
+	},
+}
 
-	logger, err := initLogger(ctx, *logLevel)
+// nolint: gochecknoinits
+func init() {
+	helper := func() {
+		if configFile != "" {
+			viper.SetConfigFile(configFile)
+		} else {
+			home, _ := homedir.Dir()
+			viper.AddConfigPath(home)
+			viper.AddConfigPath(".shai")
+			viper.SetConfigName(driveName)
+			viper.SetConfigType("yml")
+		}
+	}
+
+	cobra.OnInitialize(helper)
+
+	rootCmd.Flags().StringVarP(&configFile, "config-file", "f", "$HOME/.shai/shdrive.yml", "config file")
+	rootCmd.Flags().StringVarP(&listenHttp, "listen-http", "t", ":69091", "listen http")
+	_ = rootCmd.MarkFlagRequired("listen-http")
+	rootCmd.Flags().StringVarP(&listenRpc, "listen-rpc", "r", ":69090", "listen rpc")
+	_ = rootCmd.MarkFlagRequired("listen-rpc")
+	rootCmd.Flags().StringVarP(&logLevel, "log-level", "l", "WRAN", "log level (DEBUG|INFO|WARN|ERROR)")
+}
+
+func Execute() error {
+	return rootCmd.Execute()
+}
+
+func loadConfig(ctx context.Context) error {
+	logger, err := initLogger(ctx, logLevel)
 	if err != nil {
 		return errors.Wrap(err, "failed to init logger")
 	}
@@ -50,7 +90,7 @@ func Run(ctx context.Context) error {
 		return errors.Wrap(err, "failed to init gpt")
 	}
 
-	d, err := initDrive(ctx, logger, c, e, g)
+	d, err := initDrive(ctx, logger, c, e, g, listenHttp, listenRpc)
 	if err != nil {
 		return errors.Wrap(err, "failed to init drive")
 	}
@@ -98,7 +138,8 @@ func initGpt(ctx context.Context, logger hclog.Logger, cfg *config.Config) (gpt.
 	return gpt.New(ctx, c), nil
 }
 
-func initDrive(ctx context.Context, logger hclog.Logger, cfg *config.Config, _etcd etcd.Etcd, _gpt gpt.Gpt) (drive.Drive, error) {
+func initDrive(ctx context.Context, logger hclog.Logger, cfg *config.Config, _etcd etcd.Etcd, _gpt gpt.Gpt,
+	_http, _rpc string) (drive.Drive, error) {
 	c := drive.DefaultConfig()
 	if c == nil {
 		return nil, errors.New("failed to config")
@@ -108,6 +149,8 @@ func initDrive(ctx context.Context, logger hclog.Logger, cfg *config.Config, _et
 	c.Config = *cfg
 	c.Etcd = _etcd
 	c.Gpt = _gpt
+	c.Http = _http
+	c.Rpc = _rpc
 
 	return drive.New(ctx, c), nil
 }
