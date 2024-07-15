@@ -40,7 +40,7 @@ Usage:
 Flags:
   -f, --config-file string   config file (default "$HOME/.shai/shdrive.yml")
   -h, --help                 help for shdrive
-  -t, --listen-http string   listen http (default ":68080")
+  -t, --listen-http string   listen http (default ":65051")
   -r, --listen-rpc string    listen rpc (default ":65050")
   -l, --log-level string     log level (DEBUG|INFO|WARN|ERROR) (default "WRAN")
   -v, --version              version for shdrive
@@ -61,7 +61,7 @@ metadata:
   name: shdrive
 spec:
   ollama:
-    url: 127.0.0.1:69090
+    url: 127.0.0.1:65052
 ```
 
 
