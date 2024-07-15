@@ -4,4 +4,4 @@ metadata:
   name: shdrive
 spec:
   ollama:
-    url: 127.0.0.1:69090
+    url: 127.0.0.1:65052
