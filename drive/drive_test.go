@@ -6,7 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDrive(t *testing.T) {
+func TestSendChat(t *testing.T) {
+	// TBD: FIXME
+	assert.Equal(t, nil, nil)
+}
+
+func TestSendQuery(t *testing.T) {
 	// TBD: FIXME
 	assert.Equal(t, nil, nil)
 }
