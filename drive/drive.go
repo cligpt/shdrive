@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	routineNum = -1
+	httpTimeout = 30 * time.Second
+	routineNum  = -1
 )
 
 type Drive interface {
@@ -69,8 +70,8 @@ func (d *drive) Init(ctx context.Context) error {
 	d.srvHttp = &http.Server{
 		Addr:              d.cfg.Http,
 		Handler:           mux,
-		ReadTimeout:       5 * time.Second,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       httpTimeout,
+		ReadHeaderTimeout: httpTimeout,
 		BaseContext: func(l net.Listener) context.Context {
 			ctx = context.WithValue(ctx, "serverAddr", l.Addr().String())
 			return ctx
