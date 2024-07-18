@@ -162,8 +162,15 @@ func runDrive(ctx context.Context, _ hclog.Logger, _drive drive.Drive) error {
 	g.SetLimit(routineNum)
 
 	g.Go(func() error {
-		if err := _drive.Run(ctx); err != nil {
-			return errors.Wrap(err, "failed to run")
+		if err := _drive.RunHttp(ctx); err != nil {
+			return errors.Wrap(err, "failed to run http")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		if err := _drive.RunRpc(ctx); err != nil {
+			return errors.Wrap(err, "failed to run rpc")
 		}
 		return nil
 	})

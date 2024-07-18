@@ -4,6 +4,8 @@ import (
 	"context"
 	"math"
 	"net"
+	"net/http"
+	"time"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
@@ -15,10 +17,15 @@ import (
 	"github.com/cligpt/shdrive/gpt"
 )
 
+const (
+	routineNum = -1
+)
+
 type Drive interface {
 	Init(context.Context) error
 	Deinit(context.Context) error
-	Run(context.Context) error
+	RunHttp(context.Context) error
+	RunRpc(context.Context) error
 }
 
 type Config struct {
@@ -31,8 +38,9 @@ type Config struct {
 }
 
 type drive struct {
-	cfg *Config
-	srv *grpc.Server
+	cfg     *Config
+	srvHttp *http.Server
+	srvRpc  *grpc.Server
 	rpc.UnimplementedRpcProtoServer
 }
 
@@ -55,33 +63,47 @@ func (d *drive) Init(ctx context.Context) error {
 		return errors.Wrap(err, "failed to init gpt")
 	}
 
-	options := []grpc.ServerOption{grpc.MaxRecvMsgSize(math.MaxInt32), grpc.MaxSendMsgSize(math.MaxInt32)}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", d.getRoot)
+	mux.HandleFunc("/hello", d.getHello)
+	d.srvHttp = &http.Server{
+		Addr:              d.cfg.Http,
+		Handler:           mux,
+		ReadTimeout:       5 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		BaseContext: func(l net.Listener) context.Context {
+			ctx = context.WithValue(ctx, "serverAddr", l.Addr().String())
+			return ctx
+		},
+	}
 
-	d.srv = grpc.NewServer(options...)
-	rpc.RegisterRpcProtoServer(d.srv, d)
+	options := []grpc.ServerOption{grpc.MaxRecvMsgSize(math.MaxInt32), grpc.MaxSendMsgSize(math.MaxInt32)}
+	d.srvRpc = grpc.NewServer(options...)
+	rpc.RegisterRpcProtoServer(d.srvRpc, d)
 
 	return nil
 }
 
 func (d *drive) Deinit(ctx context.Context) error {
-	d.srv.Stop()
-
+	d.srvRpc.Stop()
+	_ = d.srvHttp.Close()
 	_ = d.cfg.Gpt.Deinit(ctx)
 	_ = d.cfg.Etcd.Deinit(ctx)
 
 	return nil
 }
 
-func (d *drive) Run(_ context.Context) error {
-	lis, _ := net.Listen("tcp", d.cfg.Rpc)
-	if err := d.srv.Serve(lis); err != nil {
-		return errors.Wrap(err, "failed to run rpc")
+func (d *drive) RunHttp(ctx context.Context) error {
+	return d.srvHttp.ListenAndServe()
+}
+
+func (d *drive) RunRpc(_ context.Context) error {
+	lis, err := net.Listen("tcp", d.cfg.Rpc)
+	if err != nil {
+		return errors.Wrap(err, "failed to listen")
 	}
 
-	// TBD: FIXME
-	// Run http server
-
-	return nil
+	return d.srvRpc.Serve(lis)
 }
 
 func (d *drive) SendChat(_ context.Context, in *rpc.ChatRequest) (*rpc.ChatReply, error) {
