@@ -110,7 +110,11 @@ func (d *drive) RunRpc(_ context.Context) error {
 func (d *drive) SendChat(_ context.Context, in *rpc.ChatRequest) (*rpc.ChatReply, error) {
 	// TBD: FIXME
 	return &rpc.ChatReply{
-		Model:     "llama3",
+		Model: &rpc.ChatModel{
+			Name: "llama3",
+			Id:   "",
+			Key:  "",
+		},
 		CreatedAt: "2023-08-04T08:52:19.385406455-07:00",
 		Message: &rpc.ChatMessage{
 			Role:    "user",
