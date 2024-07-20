@@ -19,7 +19,6 @@ import (
 
 const (
 	httpTimeout = 30 * time.Second
-	routineNum  = -1
 )
 
 type Drive interface {
