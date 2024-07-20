@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-hclog"
-	"github.com/pkg/errors"
 
 	"github.com/cligpt/shdrive/config"
 	rpc "github.com/cligpt/shdrive/drive/rpc"
