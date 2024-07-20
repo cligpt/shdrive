@@ -4,14 +4,16 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/pkg/errors"
 
 	"github.com/cligpt/shdrive/config"
+	rpc "github.com/cligpt/shdrive/drive/rpc"
 )
 
 type Gpt interface {
 	Init(context.Context) error
 	Deinit(context.Context) error
-	Run(context.Context) error
+	Run(context.Context, *rpc.ChatRequest) (*rpc.ChatReply, error)
 }
 
 type Config struct {
@@ -41,6 +43,8 @@ func (g *gpt) Deinit(_ context.Context) error {
 	return nil
 }
 
-func (g *gpt) Run(_ context.Context) error {
-	return nil
+func (g *gpt) Run(ctx context.Context, req *rpc.ChatRequest) (*rpc.ChatReply, error) {
+	// TBD: FIXME
+
+	return nil, nil
 }

@@ -1,4 +1,4 @@
-package drive
+package upgrade
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDrive(t *testing.T) {
+func TestUpgrade(t *testing.T) {
 	// TBD: FIXME
 	assert.Equal(t, nil, nil)
 }

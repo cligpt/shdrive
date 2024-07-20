@@ -12,6 +12,10 @@ type MetaData struct {
 }
 
 type Spec struct {
+	Gpt Gpt `yaml:"gpt"`
+}
+
+type Gpt struct {
 	Ollama Ollama `yaml:"ollama"`
 	Studio Studio `yaml:"studio"`
 }

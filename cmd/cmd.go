@@ -17,6 +17,7 @@ import (
 	"github.com/cligpt/shdrive/drive"
 	"github.com/cligpt/shdrive/etcd"
 	"github.com/cligpt/shdrive/gpt"
+	"github.com/cligpt/shdrive/upgrade"
 )
 
 const (
@@ -88,7 +89,12 @@ func loadConfig(ctx context.Context) error {
 		return errors.Wrap(err, "failed to init gpt")
 	}
 
-	d, err := initDrive(ctx, logger, c, e, g, listenHttp, listenRpc)
+	u, err := initUpgrade(ctx, logger, c)
+	if err != nil {
+		return errors.Wrap(err, "failed to init upgrade")
+	}
+
+	d, err := initDrive(ctx, logger, c, e, g, u, listenHttp, listenRpc)
 	if err != nil {
 		return errors.Wrap(err, "failed to init drive")
 	}
@@ -144,7 +150,19 @@ func initGpt(ctx context.Context, logger hclog.Logger, cfg *config.Config) (gpt.
 	return gpt.New(ctx, c), nil
 }
 
-func initDrive(ctx context.Context, logger hclog.Logger, cfg *config.Config, _etcd etcd.Etcd, _gpt gpt.Gpt,
+func initUpgrade(ctx context.Context, logger hclog.Logger, cfg *config.Config) (upgrade.Upgrade, error) {
+	c := upgrade.DefaultConfig()
+	if c == nil {
+		return nil, errors.New("failed to config")
+	}
+
+	c.Logger = logger
+	c.Config = *cfg
+
+	return upgrade.New(ctx, c), nil
+}
+
+func initDrive(ctx context.Context, logger hclog.Logger, cfg *config.Config, _etcd etcd.Etcd, _gpt gpt.Gpt, _upgrade upgrade.Upgrade,
 	_http, _rpc string) (drive.Drive, error) {
 	c := drive.DefaultConfig()
 	if c == nil {
@@ -155,6 +173,7 @@ func initDrive(ctx context.Context, logger hclog.Logger, cfg *config.Config, _et
 	c.Config = *cfg
 	c.Etcd = _etcd
 	c.Gpt = _gpt
+	c.Upgrade = _upgrade
 	c.Http = _http
 	c.Rpc = _rpc
 

@@ -60,8 +60,11 @@ kind: shdrive
 metadata:
   name: shdrive
 spec:
-  ollama:
-    url: http://127.0.0.1:65052
+  gpt:
+    ollama:
+      url: http://127.0.0.1:65052
+    studio:
+      url: https://studio.com
 ```
 
 

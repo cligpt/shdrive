@@ -15,6 +15,7 @@ import (
 	rpc "github.com/cligpt/shdrive/drive/rpc"
 	"github.com/cligpt/shdrive/etcd"
 	"github.com/cligpt/shdrive/gpt"
+	"github.com/cligpt/shdrive/upgrade"
 )
 
 const (
@@ -29,12 +30,13 @@ type Drive interface {
 }
 
 type Config struct {
-	Logger hclog.Logger
-	Config config.Config
-	Etcd   etcd.Etcd
-	Gpt    gpt.Gpt
-	Http   string
-	Rpc    string
+	Logger  hclog.Logger
+	Config  config.Config
+	Etcd    etcd.Etcd
+	Gpt     gpt.Gpt
+	Upgrade upgrade.Upgrade
+	Http    string
+	Rpc     string
 }
 
 type drive struct {
@@ -63,6 +65,7 @@ func (d *drive) Init(ctx context.Context) error {
 		return errors.Wrap(err, "failed to init gpt")
 	}
 
+	// TBD: FIXME
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", d.getRoot)
 	mux.HandleFunc("/hello", d.getHello)
@@ -100,35 +103,26 @@ func (d *drive) RunHttp(ctx context.Context) error {
 func (d *drive) RunRpc(_ context.Context) error {
 	lis, err := net.Listen("tcp", d.cfg.Rpc)
 	if err != nil {
-		return errors.Wrap(err, "failed to listen")
+		return errors.Wrap(err, "failed to listen rpc")
 	}
 
 	return d.srvRpc.Serve(lis)
 }
 
-func (d *drive) SendChat(_ context.Context, in *rpc.ChatRequest) (*rpc.ChatReply, error) {
-	// TBD: FIXME
-	return &rpc.ChatReply{
-		Model: &rpc.ChatModel{
-			Name: "llama3",
-			Id:   "",
-			Key:  "",
-		},
-		CreatedAt: "2023-08-04T08:52:19.385406455-07:00",
-		Message: &rpc.ChatMessage{
-			Role:    "user",
-			Content: "content",
-		},
-		Done: true,
-	}, nil
+func (d *drive) SendChat(ctx context.Context, req *rpc.ChatRequest) (*rpc.ChatReply, error) {
+	rep, err := d.cfg.Gpt.Run(ctx, req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to run gpt")
+	}
+
+	return rep, nil
 }
 
-func (d *drive) SendQuery(_ context.Context, in *rpc.QueryRequest) (*rpc.QueryReply, error) {
-	// TBD: FIXME
-	return &rpc.QueryReply{
-		Version: "v0.1.0",
-		Url:     "https://github.com/cligpt/shai/releases/download/v0.1.0/shai_0.1.0_linux_amd64.tar.gz",
-		User:    "",
-		Pass:    "",
-	}, nil
+func (d *drive) SendQuery(ctx context.Context, req *rpc.QueryRequest) (*rpc.QueryReply, error) {
+	rep, err := d.cfg.Upgrade.Run(ctx, req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to run upgrade")
+	}
+
+	return rep, nil
 }
