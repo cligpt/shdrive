@@ -12,6 +12,16 @@ type MetaData struct {
 }
 
 type Spec struct {
+	Ollama Ollama `yaml:"ollama"`
+	Studio Studio `yaml:"studio"`
+}
+
+type Ollama struct {
+	Url string `yaml:"url"`
+}
+
+type Studio struct {
+	Url string `yaml:"url"`
 }
 
 var (
