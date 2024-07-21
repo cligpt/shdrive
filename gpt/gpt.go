@@ -54,7 +54,7 @@ func (g *gpt) Run(ctx context.Context, req *rpc.ChatRequest) (*rpc.ChatReply, er
 	var rep *rpc.ChatReply
 
 	if _, ok := gptModel[req.Model.Name]; !ok {
-		return nil, errors.Wrap(err, "invalid model name")
+		return nil, errors.New("invalid model name")
 	}
 
 	rep, err = gptModel[req.Model.Name](ctx, req)
