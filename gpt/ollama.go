@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	ollamaName = "llama3"
+	OllamaName = "llama3"
 )
 
-func ollamaChat(_ context.Context, _ *rpc.ChatRequest) (*rpc.ChatReply, error) {
+func OllamaChat(_ context.Context, cfg *Config, req *rpc.ChatRequest) (*rpc.ChatReply, error) {
 	// TBD: FIXME
 	return &rpc.ChatReply{
 		Model: &rpc.ChatModel{
-			Name: ollamaName,
+			Name: OllamaName,
 			Id:   "",
 			Key:  "",
 		},
