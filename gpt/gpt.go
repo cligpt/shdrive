@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	gptModel = map[string]func(context.Context, *rpc.ChatRequest) (*rpc.ChatReply, error){
-		ollamaName: ollamaChat,
+	gptModel = map[string]func(context.Context, *Config, *rpc.ChatRequest) (*rpc.ChatReply, error){
+		OllamaName: OllamaChat,
 	}
 )
 
@@ -57,7 +57,7 @@ func (g *gpt) Run(ctx context.Context, req *rpc.ChatRequest) (*rpc.ChatReply, er
 		return nil, errors.New("invalid model name")
 	}
 
-	rep, err = gptModel[req.Model.Name](ctx, req)
+	rep, err = gptModel[req.Model.Name](ctx, g.cfg, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to run model")
 	}
